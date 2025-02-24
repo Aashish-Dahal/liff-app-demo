@@ -1,10 +1,43 @@
 "use client";
 import { Button } from "@nextui-org/button";
 import { Card, CardBody } from "@nextui-org/card";
+import { useState } from "react";
 import { useLIFFContext } from "./context/LiffProvider";
 
 export default function Home() {
   const { liff, liffError } = useLIFFContext();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const textToSpeech = (text: string) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US"; // Set language
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+      };
+      window.speechSynthesis.speak(utterance);
+      setIsPlaying(true);
+      setIsPaused(false);
+    } else {
+      alert("Speech synthesis is not supported in this browser.");
+    }
+  };
+  const pauseSpeech = () => {
+    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      window.speechSynthesis.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const resumeSpeech = () => {
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+      setIsPaused(false);
+    }
+  };
 
   return (
     <section className="py-36">
@@ -45,6 +78,38 @@ export default function Home() {
                     </p>
                   </>
                 )}
+                <div className="mt-4 flex gap-3">
+                  <Button
+                    color="secondary"
+                    className="px-4 py-2 rounded-md"
+                    onClick={() =>
+                      textToSpeech(
+                        "RTW Medicine Best Medicine $350 20% off Buy now or Add to bag Thank you"
+                      )
+                    }
+                    //disabled={isPlaying}
+                  >
+                    ▶ Play
+                  </Button>
+
+                  <Button
+                    color="warning"
+                    className="px-4 py-2 rounded-md"
+                    onClick={pauseSpeech}
+                    disabled={!isPlaying || isPaused}
+                  >
+                    ⏸ Pause
+                  </Button>
+
+                  <Button
+                    color="success"
+                    className="px-4 py-2 rounded-md"
+                    onClick={resumeSpeech}
+                    disabled={!isPaused}
+                  >
+                    🔄 Resume
+                  </Button>
+                </div>
               </div>
             </div>
           </CardBody>
