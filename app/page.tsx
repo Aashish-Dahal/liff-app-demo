@@ -35,7 +35,7 @@ export default function Home() {
 
   const sendScoreToChat = async (score: any) => {
     try {
-      const response = await fetch(process.env.NEXT_PUBLIC_NGROK_URL || "", {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL || "", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

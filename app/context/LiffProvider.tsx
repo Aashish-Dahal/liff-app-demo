@@ -35,6 +35,7 @@ const LIFFContextProvider = ({ children }: { children: ReactNode }) => {
           .then(() => {
             if (liff.isLoggedIn()) {
               liff.getProfile().then((profile) => {
+                console.log(profile);
                 setUserId(profile.userId);
                 setUserName(profile.displayName);
               });
