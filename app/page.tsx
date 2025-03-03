@@ -35,27 +35,20 @@ export default function Home() {
 
   const sendScoreToChat = async (score: any) => {
     try {
-      const response = await fetch("https://api.line.me/v2/bot/message/push", {
+      const response = await fetch(process.env.NEXT_PUBLIC_NGROK_URL || "", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CHANNEL_ACCESS_KEY}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          to: process.env.NEXT_PUBLIC_CHANNEL_ID,
-          messages: [
-            {
-              type: "text",
-              text: `User ${userName} (ID: ${userId}) scored ${score} in the Medicine Quiz.`,
-            },
-          ],
+          message: `User ${userName} (ID: ${userId}) Based on your Medicine Quiz scored ${score} We recommend you Aspirin`,
         }),
       });
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
 
-      alert("Score sent to the channel!");
+      const data = await response.json();
+      if (data.success) {
+        alert("We recommend you Aspirin");
+      } else {
+        throw new Error(data.error);
+      }
     } catch (error) {
       console.error("Error sending message to the channel", error);
     }
@@ -105,7 +98,8 @@ export default function Home() {
             </Button>
             {score !== null && (
               <div className="mt-6 p-4 bg-gray-200 rounded-lg text-center text-lg font-bold">
-                Your Current Score: {score}
+                Based on your Medicine Quiz Score {score} We recommend you
+                Aspirin
               </div>
             )}
             {liff && <p className="mt-4 text-center">LIFF init succeeded.</p>}
