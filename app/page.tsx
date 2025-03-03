@@ -39,7 +39,8 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `User ${userName} (ID: ${userId}) Based on your Medicine Quiz scored ${score} We recommend you Aspirin`,
+          message: `User ${userName} Based on your Medicine Quiz scored ${score} We recommend you Aspirin`,
+          user_id: userId,
         }),
       });
 
