@@ -101,7 +101,7 @@ export default function Home() {
               Submit
             </Button>
             {score !== null && (
-              <div className="mt-6 p-4 bg-gray-200 rounded-lg text-center text-lg font-bold">
+              <div className="mt-6 p-4 bg-gray-200 rounded-lg text-center text-sm font-bold bg-white text-black">
                 Based on your Medicine Quiz Score {score} We recommend you
                 Aspirin
               </div>
