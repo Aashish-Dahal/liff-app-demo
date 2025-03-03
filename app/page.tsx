@@ -35,14 +35,17 @@ export default function Home() {
 
   const sendScoreToChat = async (score: any) => {
     try {
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL || "", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `User ${userName} Based on your Medicine Quiz scored ${score} We recommend you Aspirin`,
-          user_id: userId,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/order`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: `User ${userName} Based on your Medicine Quiz scored ${score} We recommend you Aspirin`,
+            user_id: userId,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.success) {
