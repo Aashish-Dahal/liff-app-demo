@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useLIFFContext } from "./context/LiffProvider";
 
 export default function Home() {
-  const { liff, liffError, userName } = useLIFFContext();
+  const { liff, liffError, userName, userId } = useLIFFContext();
 
   const questions = [
     "Do you take prescribed medication regularly?",
@@ -33,19 +33,31 @@ export default function Home() {
     setScore(newScore);
   };
 
-  const sendScoreToChat = (score: any) => {
-    if (liff) {
-      if (liff.isLoggedIn()) {
-        liff
-          .sendMessages([
+  const sendScoreToChat = async (score: any) => {
+    try {
+      const response = await fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CHANNEL_ACCESS_KEY}`,
+        },
+        body: JSON.stringify({
+          to: process.env.NEXT_PUBLIC_CHANNEL_ID,
+          messages: [
             {
               type: "text",
-              text: `Hello ${userName}, your quiz score is: ${score}}`,
+              text: `User ${userName} (ID: ${userId}) scored ${score} in the Medicine Quiz.`,
             },
-          ])
-          .then(() => alert("Score sent to LINE chat!"))
-          .catch((err) => console.error("Error sending message", err));
+          ],
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to send message");
       }
+
+      alert("Score sent to the channel!");
+    } catch (error) {
+      console.error("Error sending message to the channel", error);
     }
   };
   const allAnswered = answers.every((answer) => answer !== null);
