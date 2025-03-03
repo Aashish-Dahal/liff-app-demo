@@ -5,113 +5,106 @@ import { useState } from "react";
 import { useLIFFContext } from "./context/LiffProvider";
 
 export default function Home() {
-  const { liff, liffError } = useLIFFContext();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const { liff, liffError, userName } = useLIFFContext();
 
-  const textToSpeech = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US"; // Set language
-      utterance.onend = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-      };
-      window.speechSynthesis.speak(utterance);
-      setIsPlaying(true);
-      setIsPaused(false);
-    } else {
-      alert("Speech synthesis is not supported in this browser.");
-    }
-  };
-  const pauseSpeech = () => {
-    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-      window.speechSynthesis.pause();
-      setIsPaused(true);
-    }
+  const questions = [
+    "Do you take prescribed medication regularly?",
+    "Have you ever experienced an allergic reaction to a medicine?",
+    "Do you consult a doctor before taking new medicine?",
+    "Have you been hospitalized due to a medical condition?",
+    "Do you follow dosage instructions strictly?",
+  ];
+
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  const [score, setScore] = useState(null);
+
+  const handleChange = (index: any, value: any) => {
+    const newAnswers = [...answers];
+    newAnswers[index] = value;
+    setAnswers(newAnswers);
   };
 
-  const resumeSpeech = () => {
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-      setIsPaused(false);
+  const calculateScore = () => {
+    const newScore = answers.reduce(
+      (acc, answer) => acc + (answer === "yes" ? 10 : 0),
+      0
+    );
+    sendScoreToChat(newScore);
+    setScore(newScore);
+  };
+
+  const sendScoreToChat = (score: any) => {
+    if (liff) {
+      if (liff.isLoggedIn()) {
+        liff
+          .sendMessages([
+            {
+              type: "text",
+              text: `Hello ${userName}, your quiz score is: ${score}}`,
+            },
+          ])
+          .then(() => alert("Score sent to LINE chat!"))
+          .catch((err) => console.error("Error sending message", err));
+      }
     }
   };
+  const allAnswered = answers.every((answer) => answer !== null);
 
   return (
     <section className="py-36">
       <div className="container flex items-center justify-center">
         <Card className="py-4 lg:w-3/4 xl:w-1/2">
           <CardBody className="overflow-visible py-2">
-            <div className="flex gap-6 rounded-xs">
-              <img
-                alt="Shoe"
-                className="flex-1 object-cover rounded-xs"
-                width={50}
-                src={
-                  "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=3460&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                }
-              />
-              <div className="flex-1">
-                <h2 className="text-lg font-bold uppercase">RTW Medicine</h2>
-                <p className="text-sm text-default-500">Best Medicine .</p>
-
-                <div className="mb-6 mt-2 flex gap-3">
-                  <span className="font-bold">$279.79</span>
-                  <span className="text-default-600 line-through">$350</span>
-                  <span className="text-success">20% off</span>
-                </div>
-
-                <div className="mt-6 flex gap-6">
-                  <Button color="primary">Buy now</Button>
-                  <Button color="primary" variant="bordered" radius="full">
-                    Add to bag
-                  </Button>
-                </div>
-                {liff && <p className="mt-4">LIFF init succeeded.</p>}
-                {liffError && (
-                  <>
-                    <p className="mt-4">LIFF init failed.</p>
-                    <p>
-                      <code>{liffError}</code>
-                    </p>
-                  </>
-                )}
-                <div className="mt-4 flex gap-3">
-                  <Button
-                    color="secondary"
-                    className="px-4 py-2 rounded-md"
-                    onClick={() =>
-                      textToSpeech(
-                        "RTW Medicine Best Medicine $350 20% off Buy now or Add to bag Thank you"
-                      )
-                    }
-                    //disabled={isPlaying}
-                  >
-                    ▶ Play
-                  </Button>
-
-                  <Button
-                    color="warning"
-                    className="px-4 py-2 rounded-md"
-                    onClick={pauseSpeech}
-                    disabled={!isPlaying || isPaused}
-                  >
-                    ⏸ Pause
-                  </Button>
-
-                  <Button
-                    color="success"
-                    className="px-4 py-2 rounded-md"
-                    onClick={resumeSpeech}
-                    disabled={!isPaused}
-                  >
-                    🔄 Resume
-                  </Button>
-                </div>
+            <h2 className="text-lg font-bold uppercase text-center mb-4">
+              Medicine Quiz
+            </h2>
+            {questions.map((question, index) => (
+              <div key={index} className="mb-4">
+                <p className="text-md font-semibold mb-2">{question}</p>
+                <label className="mr-4">
+                  <input
+                    className="mr-1"
+                    type="radio"
+                    name={`question-${index}`}
+                    value="yes"
+                    onChange={() => handleChange(index, "yes")}
+                  />
+                  Yes
+                </label>
+                <label>
+                  <input
+                    className="mr-1"
+                    type="radio"
+                    name={`question-${index}`}
+                    value="no"
+                    onChange={() => handleChange(index, "no")}
+                  />
+                  No
+                </label>
               </div>
-            </div>
+            ))}
+            <Button
+              color="primary"
+              onPress={calculateScore}
+              className="mt-4"
+              isDisabled={!allAnswered}
+            >
+              Submit
+            </Button>
+            {score !== null && (
+              <div className="mt-6 p-4 bg-gray-200 rounded-lg text-center text-lg font-bold">
+                Your Current Score: {score}
+              </div>
+            )}
+            {liff && <p className="mt-4 text-center">LIFF init succeeded.</p>}
+            {liffError && (
+              <>
+                <p className="mt-4 text-center">LIFF init failed.</p>
+                <p>
+                  <code>{liffError}</code>
+                </p>
+              </>
+            )}
           </CardBody>
         </Card>
       </div>
